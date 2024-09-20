@@ -478,6 +478,7 @@ func listResources() {
 		table.SetColumnColor(columnColors...)
 
 		for _, r := range resources.List[start:end] {
+			// Ensure headers and columns are aligned
 			var row []string
 			if resourceFields["ID"] {
 				row = append(row, r.ID)
@@ -504,6 +505,13 @@ func listResources() {
 				}
 				row = append(row, strings.Join(tagStrings, ", "))
 			}
+
+			// Check if row length matches header length
+			if len(row) != len(headers) {
+				fmt.Println("Row length doesn't match header length!")
+				continue
+			}
+
 			table.Append(row)
 		}
 
