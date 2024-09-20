@@ -1,0 +1,34 @@
+{
+  "playlists": [
+    {
+      "ID": "b711b9eb-c287-4d50-8520-e44ba8ef18a3",
+      "name": "testing",
+      "resources": [
+        {
+          "id": "tech034",
+          "title": "Patterns of Enterprise Application Architecture",
+          "type": "",
+          "genre": "tech",
+          "status": "unread",
+          "link": "https://www.amazon.com/gp/product/B008OHVDFM/?tag=allencheng-20",
+          "tags": [
+            "tech"
+          ],
+          "author": "Martin Fowler"
+        },
+        {
+          "id": "tech011",
+          "title": "Elon Musk",
+          "type": "",
+          "genre": "tech",
+          "status": "unread",
+          "link": "https://www.amazon.com/gp/product/B00KVI76ZS/?tag=allencheng-20",
+          "tags": [
+            "tech"
+          ],
+          "author": "Ashlee Vance"
+        }
+      ]
+    }
+  ]
+}
