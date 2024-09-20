@@ -15,7 +15,6 @@ You have 2 options for this:
 
 ## What's Missing
 * As I targeted to deploy it fast, I did not spend time on modularizing the code, so most of the functionality is bundled in the `main.go`. This is not ideal, but maybe something I'll fix later.
-* fetch-updates functionality, which would fetch a new batch of resources is not working yet. I created a publicly accessible Google sheet and tried to add resources there, and have this update functionality to make an HTTP request to get the CSV version of that sheet and update json. For some reason, it did not work (I'm pretty sure because of the inconsistent resource types I used across the application). But I'll fix that later as well.
 
 
 ## Resources
