@@ -11,6 +11,12 @@
 # Test binary, built with `go test -c`
 *.test
 
+# MAC OS FILES
+*.DS_Store
+
+# DEPLOYMENT STUFF
+.goreleaser.yaml
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
@@ -23,3 +29,5 @@ go.work.sum
 
 # env file
 .env
+
+dist/
