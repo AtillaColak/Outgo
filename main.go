@@ -555,62 +555,27 @@ func listPlaylists() {
 			end = len(playlists.List)
 		}
 
-		// Create a new table writer
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetAutoFormatHeaders(false)
-		table.SetRowLine(true) // Adds a line between each row
+		table.SetRowLine(true)
 
-		// Prepare headers and colors
-		var headers []string
-		var columnColors []tablewriter.Colors
+		table.SetHeader([]string{"ID", "Name"})
+		table.SetColumnColor(
+			tablewriter.Colors{tablewriter.FgWhiteColor},
+			tablewriter.Colors{tablewriter.FgWhiteColor},
+		)
 
-		// Add headers for Playlist ID, Name, and Resources
-		for field, visible := range playlistFields {
-			if visible {
-				headers = append(headers, field)
-				columnColors = append(columnColors, tablewriter.Colors{tablewriter.FgWhiteColor}) // Default color
-			}
-		}
-		table.SetHeader(headers)
-		table.SetColumnColor(columnColors...)
-
-		// Loop through playlists to add rows
 		for _, p := range playlists.List[start:end] {
-			var row []string
-
-			// Add Playlist ID if it's visible
-			if playlistFields["ID"] {
-				row = append(row, p.ID) // Playlist ID
-			}
-
-			// Add Playlist Name if it's visible
-			if playlistFields["Name"] {
-				row = append(row, p.Name)
-			}
-
-			// Add Resource IDs if they are visible
-			if playlistFields["Resources"] {
-				resourceIDs := []string{}
-				for _, r := range p.Resources {
-					resourceIDs = append(resourceIDs, r.ID)
-				}
-				row = append(row, strings.Join(resourceIDs, ", "))
-			}
-
-			// Append the row to the table
-			table.Append(row)
+			table.Append([]string{p.ID, p.Name})
 		}
 
-		// Render the table with a green outline
 		fmt.Print("\033[32m") // Set text color to green
 		table.Render()
 		fmt.Print("\033[0m") // Reset text color
 
-		// Display page navigation options
 		fmt.Printf("Page %d of %d\n", currentPage+1, totalPages)
 		fmt.Println("Options: [1] Go Left, [2] Go Right, [3] Return to Previous Screen")
 
-		// Handle user choice for pagination
 		choice := getUserChoice()
 		switch choice {
 		case "1":
@@ -819,11 +784,10 @@ func main() {
 		case "delete":
 			deleteResource(reader)
 		case "fetch-updates":
-			// sheetURL := "https://docs.google.com/spreadsheets/d/e/2PACX-1vQd9Yd2b2O0T_k5Wf3D8zX7/your_csv_export_link_here"
-			// if err := updateResourcesWithType(sheetURL); err != nil {
-			// 	fmt.Printf("Error updating resources from Google Sheets: %v\n", err)
-			// }
-			fmt.Printf("Coming Soon...")
+			sheetURL := "1wganKHEJps87WhFI2O_xyVw-3vkTshmaf665OKczbwc"
+			if err := updateResourcesWithType(sheetURL); err != nil {
+				fmt.Printf("Error updating resources from Google Sheets: %v\n", err)
+			}
 		case "filter":
 			filterResources(reader)
 		case "mark":

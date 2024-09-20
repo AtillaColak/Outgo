@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -57,6 +58,56 @@ func generateID(genre string, resourceFile ResourceFileUpdateInputs) string {
 }
 
 // New function to save articles with type
+func updateResourcesWithType(sheetID string) error {
+	// Construct the URL to fetch CSV data for a specific range (A:F)
+	csvURL := fmt.Sprintf("https://docs.google.com/spreadsheets/d/%s/gviz/tq?tqx=out:csv&range=A:F", sheetID)
+
+	// Fetch the CSV data
+	resp, err := http.Get(csvURL)
+	if err != nil {
+		return fmt.Errorf("error fetching CSV: %v", err)
+	}
+	defer resp.Body.Close()
+	// Parse the CSV
+	reader := csv.NewReader(resp.Body)
+	reader.LazyQuotes = true       // Allow lazy quotes
+	reader.TrimLeadingSpace = true // Trim leading space
+
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return fmt.Errorf("error reading CSV: %v", err)
+	}
+
+	var newInputForms []InputForm
+
+	// Process the CSV data
+	for i, row := range rows {
+		if i == 0 {
+			continue // Skip the header row
+		}
+		if len(row) < 6 {
+			continue // Ensure there are enough columns
+		}
+
+		article := InputForm{
+			ID:     generateID(strings.TrimSpace(row[3]), ResourceFileUpdateInputs{}),
+			Title:  strings.TrimSpace(row[0]),
+			Author: strings.TrimSpace(row[1]),
+			Link:   strings.TrimSpace(row[2]),
+			Genre:  strings.TrimSpace(row[3]),
+			Status: "unread", // Default status
+			Tags:   strings.Split(strings.TrimSpace(row[4]), ","),
+			Type:   strings.TrimSpace(row[5]),
+		}
+
+		if !InputExists(newInputForms, article.Title) {
+			newInputForms = append(newInputForms, article)
+		}
+	}
+	// Save new articles to resources.json
+	return saveInputFormsWithType(newInputForms)
+}
+
 func saveInputFormsWithType(articles []InputForm) error {
 	filePath := "resources.json"
 
@@ -73,16 +124,8 @@ func saveInputFormsWithType(articles []InputForm) error {
 		}
 	}
 
-	// Filter out duplicate articles and ensure all fields are filled
-	var newInputForms []InputForm
-	for _, article := range articles {
-		if !InputExists(resourceFile.Resources, article.Title) {
-			newInputForms = append(newInputForms, InputForm(article)) // Convert UpdateInputs to InputForm
-		}
-	}
-
 	// Add the new articles to the existing list
-	resourceFile.Resources = append(resourceFile.Resources, newInputForms...)
+	resourceFile.Resources = append(resourceFile.Resources, articles...)
 
 	// Write the updated list back to the file
 	data, err := json.MarshalIndent(resourceFile, "", "  ")
@@ -93,64 +136,6 @@ func saveInputFormsWithType(articles []InputForm) error {
 		return err
 	}
 
-	fmt.Printf("Successfully saved %d new articles to resources.json\n", len(newInputForms))
+	fmt.Printf("Successfully saved %d new articles to resources.json\n", len(articles))
 	return nil
-}
-
-// Function to process and save articles from the provided input
-func updateResourcesWithType(sheetURL string) error {
-	// Fetch the data from the public Google Sheets URL
-	resp, err := http.Get(sheetURL)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	// Parse the TSV format directly (assuming Google Sheets provides it as TSV)
-	lines := strings.Split(string(body), "\n")
-	var newInputForms []InputForm
-
-	// Read existing articles for ID generation
-	var resourceFile ResourceFileUpdateInputs
-	if _, err := os.Stat("resources.json"); err == nil {
-		file, err := ioutil.ReadFile("resources.json")
-		if err == nil {
-			json.Unmarshal(file, &resourceFile)
-		}
-	}
-
-	// Process the TSV data
-	for i, line := range lines {
-		if i == 0 {
-			continue // Skip the header
-		}
-		columns := strings.Split(line, "\t") // Split by tab character
-		if len(columns) < 6 {
-			continue // Ensure there are enough columns
-		}
-
-		article := InputForm{
-			ID:     generateID(strings.TrimSpace(columns[3]), resourceFile), // Generate ID based on genre
-			Title:  strings.TrimSpace(columns[0]),
-			Author: strings.TrimSpace(columns[1]),
-			Link:   strings.TrimSpace(columns[2]),
-			Genre:  strings.TrimSpace(columns[3]),
-			Status: "unread", // Default status; adjust as needed
-			Tags:   strings.Split(strings.TrimSpace(columns[4]), ","),
-			Type:   strings.TrimSpace(columns[5]), // New field for type
-		}
-
-		if !InputExists(newInputForms, article.Title) {
-			newInputForms = append(newInputForms, article)
-		}
-	}
-
-	// Save new articles to resources.json
-	return saveInputFormsWithType(newInputForms)
 }
